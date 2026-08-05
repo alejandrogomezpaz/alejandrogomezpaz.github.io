@@ -1,0 +1,459 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Building an Offline Retrieval-Augmented Generation Pipeline &#8212; Alex Gomez-Paz</title>
+<meta name="description" content="Building a production-ready offline RAG pipeline for embedded safety advice: semantic structure-aware chunking, a two-stage cross-encoder re-ranker, refusal thresholds, and an LLM-judged benchmark suite.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#08090a;--panel:#101113;--line:#1f2124;--line-hi:#2e3134;
+    --fg:#eceef0;--fg-dim:#9aa0a6;--fg-faint:#6b7076;--accent:#ff7a18;
+    --accent-hi:#ff9a4d;--accent-dim:#c25a0f;
+    --mono:'JetBrains Mono',ui-monospace,SFMono-Regular,Menlo,monospace;
+    --sans:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html{scroll-behavior:smooth}
+  body{background:var(--bg);color:var(--fg);font-family:var(--sans);font-size:16px;line-height:1.7;-webkit-font-smoothing:antialiased}
+  a{color:inherit}
+  ::selection{background:var(--accent);color:#0a0a0a}
+  .wrap{max-width:700px;margin:0 auto;padding:0 24px}
+
+  nav{position:sticky;top:0;z-index:50;background:rgba(8,9,10,.85);backdrop-filter:blur(10px);border-bottom:1px solid var(--line)}
+  nav .wrap{display:flex;align-items:center;justify-content:space-between;height:58px}
+  .brand{font-family:var(--mono);font-size:13px;text-decoration:none}
+  .brand span{color:var(--accent)}
+  .back{font-family:var(--mono);font-size:13px;color:var(--fg-dim);text-decoration:none;transition:color .15s}
+  .back:hover{color:var(--accent)}
+
+  header.post-head{padding:72px 0 40px;border-bottom:1px solid var(--line)}
+  .meta{font-family:var(--mono);font-size:12px;color:var(--fg-faint);letter-spacing:.05em;margin-bottom:20px;display:flex;gap:14px;flex-wrap:wrap}
+  .meta .dot{color:var(--line-hi)}
+  h1{font-size:36px;line-height:1.2;font-weight:600;letter-spacing:-.025em;margin-bottom:18px}
+  @media(max-width:560px){h1{font-size:28px}}
+  .standfirst{font-size:17.5px;color:var(--fg-dim)}
+  .chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:24px}
+  .chip{font-family:var(--mono);font-size:11px;color:var(--fg-faint);border:1px solid var(--line);border-radius:4px;padding:2px 7px}
+
+  article{padding:48px 0 24px}
+  article h2{
+    font-size:14px;font-family:var(--mono);letter-spacing:.09em;text-transform:uppercase;
+    color:var(--accent);margin:52px 0 18px;font-weight:500;
+  }
+  article h2:first-child{margin-top:0}
+  article p{color:#c7ccd2;margin-bottom:18px}
+  article strong{color:var(--fg);font-weight:600}
+  article em{color:var(--fg);font-style:italic}
+  article ol,article ul{color:#c7ccd2;margin:0 0 18px 22px}
+  article li{margin-bottom:8px;padding-left:4px}
+  article li::marker{color:var(--fg-faint);font-family:var(--mono);font-size:13px}
+  code{font-family:var(--mono);font-size:13px;background:#15171a;border:1px solid var(--line);border-radius:4px;padding:1px 5px;color:#f0b481}
+
+  .callout{
+    border-left:2px solid var(--accent);background:var(--panel);
+    padding:18px 20px;margin:28px 0;border-radius:0 6px 6px 0;
+  }
+  .callout .label{font-family:var(--mono);font-size:11px;letter-spacing:.09em;text-transform:uppercase;color:var(--accent);margin-bottom:8px}
+  .callout p{margin-bottom:0;font-size:15px}
+
+  .diagram{
+    font-family:var(--mono);font-size:12.5px;line-height:1.9;color:var(--fg-dim);
+    background:var(--panel);border:1px solid var(--line);border-radius:6px;
+    padding:20px;margin:26px 0;overflow-x:auto;white-space:pre;
+  }
+  .diagram .hl{color:var(--accent)}
+
+  figure{margin:30px 0;background:var(--panel);border:1px solid var(--line);border-radius:6px;padding:22px 20px 16px}
+  figure svg{display:block;width:100%;height:auto}
+  figcaption{font-family:var(--mono);font-size:11px;letter-spacing:.05em;color:var(--fg-faint);margin-top:14px;text-align:center}
+
+  table{width:100%;border-collapse:collapse;margin:26px 0;font-size:14px}
+  th,td{text-align:left;padding:10px 12px;border-bottom:1px solid var(--line)}
+  th{font-family:var(--mono);font-size:11px;letter-spacing:.07em;text-transform:uppercase;color:var(--fg-faint);font-weight:500}
+  td{color:#c7ccd2}
+  td:first-child{color:var(--fg)}
+  .num{font-family:var(--mono);color:var(--accent)}
+  td.num{font-weight:500}
+
+  footer{padding:48px 0 64px;margin-top:40px;border-top:1px solid var(--line);font-family:var(--mono);font-size:12px;color:var(--fg-faint);display:flex;justify-content:space-between;flex-wrap:wrap;gap:10px}
+  footer a{color:var(--fg-dim);text-decoration:none}
+  footer a:hover{color:var(--accent)}
+</style>
+</head>
+<body>
+
+<nav>
+  <div class="wrap">
+    <a class="brand" href="index.html">alex<span>.</span>gomez-paz</a>
+    <a class="back" href="index.html">&#8592; index</a>
+  </div>
+</nav>
+
+<header class="post-head">
+  <div class="wrap">
+    <div class="meta">
+      <span>2026</span><span class="dot">/</span><span>Project writeup</span><span class="dot">/</span><span>8 min read</span>
+    </div>
+    <h1>Building an Offline Retrieval-Augmented Generation Pipeline</h1>
+    <p class="standfirst">Rebuilding a prototype RAG system into a production pipeline for embedded safety advice &#8212; and figuring out how to prove it actually got better.</p>
+    <div class="chips">
+      <span class="chip">LLMs</span>
+      <span class="chip">Optimization</span>
+      <span class="chip">Databases</span>
+      <span class="chip">Python</span>
+      <span class="chip">Embedded AI</span>
+    </div>
+  </div>
+</header>
+
+<div class="wrap">
+<article>
+
+<h2>Motivation</h2>
+
+<p>I joined the SEAL lab team working on <strong>RAD-AI</strong>: an embedded AI product that gives natural-language safety advice to non-expert emergency responders, derived from raw sensor data.</p>
+
+<p>I had just finished a deep learning series and was deep into how LLMs work mechanistically. The team's spring report flagged full retrieval-augmented generation as the most consequential direction available: a minimal viable RAG prototype already existed, but what the product needed was a custom, production-ready system.</p>
+
+<h2>What RAG Actually Is</h2>
+
+<p>Before the technical part, the non-technical brief:</p>
+
+<p>LLMs hallucinate. They misremember, or they invent outright. That's bad in general and dangerous when the output is safety advice.</p>
+
+<p>The fix is to stop the model from answering off the top of its head. Think of someone who needs advice: instead of guessing, they go to a librarian, who hands back the few most relevant books. They read those, and answer from them. That's retrieval-augmented generation.</p>
+
+<p>There are two halves:</p>
+
+<ol>
+  <li><strong>Database instantiation</strong> &#8212; building the library and sorting the books. Done once, takes a while.</li>
+  <li><strong>The query pipeline</strong> &#8212; the librarian fetching the specific books the model needs. Every query, has to be fast.</li>
+</ol>
+
+<div class="diagram"><span class="hl">DATABASE</span>  (once)         scrape  ──►  clean  ──►  chunk  ──►  index
+
+<span class="hl">QUERY</span>  (every time)    embed query  ──►  rank  ──►  retrieve + system prompt  ──►  generate</div>
+
+<h2>My Work</h2>
+
+<p>I started by reading the original Retrieval-Augmented Generation paper, some lectures on interpretability, and then the prototype code the team had written.</p>
+
+<p>The prototype worked, but there was room for improvement at every stage. A clear example: it split every document at exactly <span class="num">2,200</span> characters with a <span class="num">300</span>-character overlap. That does two bad things at once &#8212; it stores duplicate text, and it cuts through the middle of ideas. Both degrade retrieval quality, and the system compensates by spending a bigger token budget.</p>
+
+<h2>The Question I Couldn't Answer</h2>
+
+<p>Early on I was explaining the project to my brother and he asked an obvious question: <em>how do you know the RAG is getting better?</em></p>
+
+<p>I didn't have an answer.</p>
+
+<p>Answering it properly took a few papers &#8212; the most helpful being one on RAG for nuclear-domain question answering &#8212; and a fair amount of thinking about what "good" even decomposes into. I landed on six metrics:</p>
+
+<table>
+  <thead>
+    <tr><th>Metric</th><th>What it captures</th></tr>
+  </thead>
+  <tbody>
+    <tr><td>Tokens per query</td><td>Context budget spent to answer</td></tr>
+    <tr><td>Latency</td><td>Wall-clock time to first usable answer</td></tr>
+    <tr><td>Retrieval quality</td><td>Did the right chunks make the shortlist</td></tr>
+    <tr><td>Answer correctness</td><td>Verified against a written answer key</td></tr>
+    <tr><td>Hallucination</td><td>Claims unsupported by retrieved sources</td></tr>
+    <tr><td>Refusal accuracy</td><td>Declining exactly when it should</td></tr>
+  </tbody>
+</table>
+
+<p>The whole thing is a multi-variable optimization, and the variables trade against each other. More retrieved chunks means better recall <em>and</em> more tokens. A better re-ranker means better answers <em>and</em> more latency.</p>
+
+<figure>
+<svg viewBox="0 0 660 250" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Trade-off diagram: retrieved chunks and re-ranker depth improve quality while increasing tokens and latency">
+  <defs>
+    <marker id="ar" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M0,0 L10,5 L0,10 z" fill="#ff7a18"/>
+    </marker>
+    <marker id="arDim" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M0,0 L10,5 L0,10 z" fill="#6b7076"/>
+    </marker>
+  </defs>
+  <g font-family="JetBrains Mono, monospace" font-size="12">
+    <!-- knobs -->
+    <rect x="8" y="34" width="150" height="34" rx="5" fill="#08090a" stroke="#2e3134"/>
+    <text x="83" y="56" fill="#eceef0" text-anchor="middle">retrieved chunks &#8593;</text>
+    <rect x="8" y="98" width="150" height="34" rx="5" fill="#08090a" stroke="#2e3134"/>
+    <text x="83" y="120" fill="#eceef0" text-anchor="middle">re-ranker depth &#8593;</text>
+    <rect x="8" y="162" width="150" height="34" rx="5" fill="#08090a" stroke="#2e3134"/>
+    <text x="83" y="184" fill="#eceef0" text-anchor="middle">chunk size &#8593;</text>
+    <text x="83" y="22" fill="#6b7076" font-size="10.5" text-anchor="middle" letter-spacing="1">KNOBS</text>
+
+    <!-- gains -->
+    <text x="420" y="22" fill="#ff7a18" font-size="10.5" text-anchor="middle" letter-spacing="1">GAIN</text>
+    <rect x="330" y="34" width="180" height="30" rx="5" fill="#1a1005" stroke="#c25a0f"/>
+    <text x="420" y="54" fill="#ff9a4d" text-anchor="middle">recall &#8593;</text>
+    <rect x="330" y="76" width="180" height="30" rx="5" fill="#1a1005" stroke="#c25a0f"/>
+    <text x="420" y="96" fill="#ff9a4d" text-anchor="middle">precision &#8593;</text>
+    <rect x="330" y="118" width="180" height="30" rx="5" fill="#1a1005" stroke="#c25a0f"/>
+    <text x="420" y="138" fill="#ff9a4d" text-anchor="middle">context per chunk &#8593;</text>
+
+    <!-- costs -->
+    <text x="420" y="176" fill="#6b7076" font-size="10.5" text-anchor="middle" letter-spacing="1">COST</text>
+    <rect x="330" y="188" width="85" height="30" rx="5" fill="#101113" stroke="#2e3134"/>
+    <text x="372" y="208" fill="#9aa0a6" text-anchor="middle">tokens &#8593;</text>
+    <rect x="425" y="188" width="85" height="30" rx="5" fill="#101113" stroke="#2e3134"/>
+    <text x="467" y="208" fill="#9aa0a6" text-anchor="middle">latency &#8593;</text>
+
+    <!-- links -->
+    <path d="M162,48 C240,48 250,48 326,48" stroke="#ff7a18" stroke-width="1.4" fill="none" marker-end="url(#ar)"/>
+    <path d="M162,112 C240,112 250,92 326,92" stroke="#ff7a18" stroke-width="1.4" fill="none" marker-end="url(#ar)"/>
+    <path d="M162,176 C240,176 250,136 326,134" stroke="#ff7a18" stroke-width="1.4" fill="none" marker-end="url(#ar)"/>
+    <path d="M162,58 C230,58 250,200 326,203" stroke="#6b7076" stroke-width="1.2" stroke-dasharray="4 3" fill="none" marker-end="url(#arDim)"/>
+    <path d="M162,122 C240,122 250,200 326,203" stroke="#6b7076" stroke-width="1.2" stroke-dasharray="4 3" fill="none" marker-end="url(#arDim)"/>
+    <path d="M162,186 C240,190 250,204 326,205" stroke="#6b7076" stroke-width="1.2" stroke-dasharray="4 3" fill="none" marker-end="url(#arDim)"/>
+
+    <text x="600" y="126" fill="#6b7076" font-size="10.5" text-anchor="middle">every knob</text>
+    <text x="600" y="142" fill="#ff7a18" font-size="10.5" text-anchor="middle">pays both ways</text>
+    <path d="M516,126 L560,126" stroke="#2e3134" stroke-width="1"/>
+  </g>
+</svg>
+<figcaption>Solid = gain, dashed = cost. No knob moves in one direction only.</figcaption>
+</figure>
+
+<h2>The Hard Part: Hallucination</h2>
+
+<p>Hallucination isn't a regular expression. Judging whether a model made something up requires a judge that understands the claim, the source, and the gap between them.</p>
+
+<p>I automated it with API calls to a third-party LLM with a large context window, given a purpose-built judging prompt &#8212; then human-validated a sample of its verdicts as a second layer. Every benchmark run is logged to a readable file, so a domain expert can audit any individual call.</p>
+
+<div class="callout">
+  <div class="label">One caveat</div>
+  <p>Hallucination rate measures the RAG and the LLM <em>together</em>. A refusal-capable RAG lowers it, but you are never measuring the retrieval system in isolation.</p>
+</div>
+
+<h2>The Corpus Problem</h2>
+
+<p>Before writing a line of pipeline code, I found something I wasn't looking for: the existing corpus was poor. The documents were unrelated to the product &#8212; legal filings, political text, nothing that could answer a real user question.</p>
+
+<p>So the benchmark had a prerequisite I hadn't planned for. I had to iteratively scrape a corpus large and relevant enough to make benchmarking the RAG meaningful in the first place.</p>
+
+<h2>Database Design</h2>
+
+<p><strong>Ingestion.</strong> A folder of PDFs, with a seamless add-on path so users can drop in their own local documents &#8212; versus the prototype's rigid ingestion.</p>
+
+<p><strong>Semantic structure-aware chunking.</strong> Instead of cutting at a fixed character count, the chunker walks the document measuring semantic similarity between adjacent spans. When similarity drops below a threshold, it cuts there. The output is chunks that are complete ideas with no duplicated text, which optimizes both memory and retrieval quality.</p>
+
+<p>Two backstops handle the tails: chunks that come out too small get merged with neighbors, and chunks that come out too large get recursively re-split.</p>
+
+<figure>
+<svg viewBox="0 0 660 300" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Fixed-size chunking cuts through ideas and duplicates overlap text; semantic chunking cuts at similarity troughs">
+  <g font-family="JetBrains Mono, monospace" font-size="11">
+    <text x="0" y="14" fill="#6b7076" font-size="10.5" letter-spacing="1">PROTOTYPE &#8212; FIXED 2,200 CHARS, 300 OVERLAP</text>
+    <!-- idea blocks -->
+    <rect x="0" y="26" width="200" height="26" rx="3" fill="#101113" stroke="#2e3134"/>
+    <rect x="200" y="26" width="230" height="26" rx="3" fill="#101113" stroke="#2e3134"/>
+    <rect x="430" y="26" width="230" height="26" rx="3" fill="#101113" stroke="#2e3134"/>
+    <text x="100" y="44" fill="#9aa0a6" text-anchor="middle">idea A</text>
+    <text x="315" y="44" fill="#9aa0a6" text-anchor="middle">idea B</text>
+    <text x="545" y="44" fill="#9aa0a6" text-anchor="middle">idea C</text>
+    <!-- cuts -->
+    <line x1="250" y1="18" x2="250" y2="60" stroke="#ff7a18" stroke-width="1.6" stroke-dasharray="3 3"/>
+    <line x1="500" y1="18" x2="500" y2="60" stroke="#ff7a18" stroke-width="1.6" stroke-dasharray="3 3"/>
+    <!-- overlap bars -->
+    <rect x="220" y="62" width="60" height="12" rx="2" fill="#c25a0f" opacity=".55"/>
+    <rect x="470" y="62" width="60" height="12" rx="2" fill="#c25a0f" opacity=".55"/>
+    <text x="292" y="72" fill="#6b7076" font-size="10">duplicated overlap</text>
+    <text x="250" y="94" fill="#ff9a4d" font-size="10.5" text-anchor="middle">cuts mid-idea</text>
+
+    <!-- divider -->
+    <line x1="0" y1="118" x2="660" y2="118" stroke="#1f2124"/>
+
+    <text x="0" y="142" fill="#ff7a18" font-size="10.5" letter-spacing="1">SEMANTIC STRUCTURE-AWARE CHUNKING</text>
+    <!-- similarity curve -->
+    <polyline points="0,196 40,190 80,193 120,188 160,192 200,186 215,214 230,190 270,184 310,188 350,186 390,190 415,218 440,192 480,186 520,190 560,187 600,191 640,188 660,190"
+      fill="none" stroke="#ff7a18" stroke-width="1.8"/>
+    <line x1="0" y1="206" x2="660" y2="206" stroke="#6b7076" stroke-width="1" stroke-dasharray="4 4"/>
+    <text x="660" y="202" fill="#6b7076" font-size="10" text-anchor="end">threshold</text>
+    <text x="0" y="168" fill="#6b7076" font-size="10">adjacent-span similarity</text>
+    <!-- cut markers at troughs -->
+    <line x1="215" y1="160" x2="215" y2="240" stroke="#ff7a18" stroke-width="1.4" stroke-dasharray="3 3"/>
+    <line x1="415" y1="160" x2="415" y2="240" stroke="#ff7a18" stroke-width="1.4" stroke-dasharray="3 3"/>
+    <circle cx="215" cy="214" r="3.5" fill="#ff7a18"/>
+    <circle cx="415" cy="218" r="3.5" fill="#ff7a18"/>
+    <!-- resulting chunks -->
+    <rect x="0" y="248" width="211" height="26" rx="3" fill="#1a1005" stroke="#c25a0f"/>
+    <rect x="219" y="248" width="192" height="26" rx="3" fill="#1a1005" stroke="#c25a0f"/>
+    <rect x="419" y="248" width="241" height="26" rx="3" fill="#1a1005" stroke="#c25a0f"/>
+    <text x="105" y="266" fill="#ff9a4d" text-anchor="middle">chunk 1</text>
+    <text x="315" y="266" fill="#ff9a4d" text-anchor="middle">chunk 2</text>
+    <text x="539" y="266" fill="#ff9a4d" text-anchor="middle">chunk 3</text>
+    <text x="330" y="292" fill="#6b7076" font-size="10.5" text-anchor="middle">complete ideas, no duplicated text, citation metadata intact</text>
+  </g>
+</svg>
+<figcaption>Cut where meaning changes, not where the character counter runs out.</figcaption>
+</figure>
+
+<div class="diagram">text  ──►  span similarity  ──►  <span class="hl">below threshold?</span>  ──►  cut
+                                      │
+                        too small ────┼──── too large
+                            │                   │
+                          <span class="hl">merge</span>              <span class="hl">recurse</span></div>
+
+<p><strong>Citations.</strong> Because chunking respects document structure, the metadata survives the split &#8212; so each chunk carries a verifiable citation instead of a guess about where it came from. That matters: validation is only possible if a human can trace a claim back to a page.</p>
+
+<p><strong>Indexing.</strong> I chose ChromaDB for lightweight vector storage, leveraging Hierarchical Navigable Small World (HNSW) indexing &#8212; <code>O(log n)</code> search as opposed to flat search's <code>O(n)</code>.</p>
+
+<h2>Retrieval</h2>
+
+<p>The core change is a two-stage ranker.</p>
+
+<ol>
+  <li><strong>Stage 1</strong> &#8212; cosine similarity between the embedded query vector and the chunk vectors: a fast, approximate filter down to a candidate set.</li>
+  <li><strong>Stage 2</strong> &#8212; a computationally expensive re-ranker running a full-attention cross-encoder over the query and each individual candidate.</li>
+</ol>
+
+<p>This works because stage 1 compares <em>frozen</em> vectors: each chunk is embedded independently of the query, so the score only measures topical proximity. An on-topic chunk that lacks the answer ranks as highly as one that contains it. Stage 2 reads the query and the chunk together, which separates "about this" from "answers this" &#8212; but costs far more per pair. Hence the ordering: cheap recall over the corpus, expensive precision over the shortlist.</p>
+
+<figure>
+<svg viewBox="0 0 660 210" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Two-stage retrieval funnel from full corpus to top-k candidates to top-n final chunks">
+  <defs>
+    <marker id="ar2" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto">
+      <path d="M0,0 L10,5 L0,10 z" fill="#ff7a18"/>
+    </marker>
+  </defs>
+  <g font-family="JetBrains Mono, monospace" font-size="11">
+    <!-- corpus -->
+    <rect x="4" y="40" width="150" height="120" rx="5" fill="#101113" stroke="#2e3134"/>
+    <text x="79" y="30" fill="#6b7076" font-size="10.5" text-anchor="middle">FULL CORPUS</text>
+    <text x="79" y="106" fill="#9aa0a6" text-anchor="middle" font-size="12">N chunks</text>
+    <g fill="#2e3134">
+      <rect x="18" y="54" width="122" height="4" rx="2"/><rect x="18" y="64" width="122" height="4" rx="2"/>
+      <rect x="18" y="74" width="122" height="4" rx="2"/><rect x="18" y="122" width="122" height="4" rx="2"/>
+      <rect x="18" y="132" width="122" height="4" rx="2"/><rect x="18" y="142" width="122" height="4" rx="2"/>
+    </g>
+
+    <path d="M158,100 L214,100" stroke="#ff7a18" stroke-width="1.6" marker-end="url(#ar2)"/>
+    <text x="186" y="88" fill="#ff9a4d" font-size="10" text-anchor="middle">stage 1</text>
+    <text x="186" y="122" fill="#6b7076" font-size="10" text-anchor="middle">cosine</text>
+
+    <!-- candidates -->
+    <rect x="220" y="58" width="140" height="84" rx="5" fill="#101113" stroke="#c25a0f"/>
+    <text x="290" y="30" fill="#6b7076" font-size="10.5" text-anchor="middle">CANDIDATES</text>
+    <text x="290" y="106" fill="#ff9a4d" text-anchor="middle" font-size="12">top-k</text>
+    <g fill="#2e3134">
+      <rect x="234" y="72" width="112" height="4" rx="2"/><rect x="234" y="126" width="112" height="4" rx="2"/>
+    </g>
+
+    <path d="M364,100 L420,100" stroke="#ff7a18" stroke-width="1.6" marker-end="url(#ar2)"/>
+    <text x="392" y="88" fill="#ff9a4d" font-size="10" text-anchor="middle">stage 2</text>
+    <text x="392" y="122" fill="#6b7076" font-size="10" text-anchor="middle">cross-enc</text>
+
+    <!-- final -->
+    <rect x="426" y="78" width="120" height="44" rx="5" fill="#1a1005" stroke="#ff7a18"/>
+    <text x="486" y="30" fill="#ff7a18" font-size="10.5" text-anchor="middle">SENT TO MODEL</text>
+    <text x="486" y="105" fill="#ff9a4d" text-anchor="middle" font-size="12">top-n</text>
+
+    <path d="M550,100 L596,100" stroke="#2e3134" stroke-width="1.4"/>
+    <text x="628" y="96" fill="#9aa0a6" font-size="10.5" text-anchor="middle">below</text>
+    <text x="628" y="110" fill="#ff7a18" font-size="10.5" text-anchor="middle">threshold?</text>
+    <text x="628" y="130" fill="#6b7076" font-size="10.5" text-anchor="middle">&#8594; refuse</text>
+
+    <text x="330" y="186" fill="#6b7076" font-size="10.5" text-anchor="middle">cheap over many  &#8226;  expensive over few  &#8226;  n &#8810; k &#8810; N</text>
+  </g>
+</svg>
+<figcaption>Two-stage ranking: recall first, precision second.</figcaption>
+</figure>
+
+<div class="diagram">stage 1:  cos(q, c&#7522;) = (q &#183; c&#7522;) / (&#8741;q&#8741; &#8741;c&#7522;&#8741;)   ──►  <span class="hl">top-k</span>
+
+stage 2:  s&#7522; = f(concat(q, c&#7522;))               ──►  <span class="hl">top-n</span>,   n &#8810; k</div>
+
+<p><strong>Refusal threshold.</strong> If even the best-scoring chunk is weak, the system declines to answer instead of handing over the closest book anyway. The prototype had no such threshold. No answer beats a wrong answer &#8212; especially for safety advice.</p>
+
+<p><strong>System prompt.</strong> Rewritten, and the chunking tuned jointly with it for token efficiency. Attention cost grows faster than the text does, so every token you don't send saves disproportionate time and compute.</p>
+
+<h2>Results</h2>
+
+<p>A 52-query benchmark suite with answer keys and citation verification, run against a locally hosted instance of the exact Gemma 3 model the product uses. All figures are relative to the prototype pipeline on the same corpus and the same hardware.</p>
+
+<table>
+  <thead>
+    <tr><th>Metric</th><th>Direction</th><th>Change</th></tr>
+  </thead>
+  <tbody>
+    <tr><td>Hallucinations</td><td>lower is better</td><td class="num">&#8722;72%</td></tr>
+    <tr><td>Tokens per query</td><td>lower is better</td><td class="num">&#8722;34%</td></tr>
+    <tr><td>Latency</td><td>lower is better</td><td class="num">&#8722;18%</td></tr>
+    <tr><td>Answer correctness</td><td>higher is better</td><td class="num">+29%</td></tr>
+  </tbody>
+</table>
+
+<figure>
+<svg viewBox="0 0 660 250" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Bar chart of benchmark deltas: hallucinations down 72 percent, tokens down 34 percent, latency down 18 percent, answer correctness up 29 percent">
+  <g font-family="JetBrains Mono, monospace" font-size="11.5">
+    <!-- grid -->
+    <line x1="150" y1="18" x2="150" y2="212" stroke="#2e3134" stroke-width="1"/>
+    <line x1="150" y1="212" x2="640" y2="212" stroke="#1f2124" stroke-width="1"/>
+    <g stroke="#15171a">
+      <line x1="272" y1="18" x2="272" y2="205"/>
+      <line x1="394" y1="18" x2="394" y2="205"/>
+      <line x1="516" y1="18" x2="516" y2="205"/>
+      <line x1="638" y1="18" x2="638" y2="205"/>
+    </g>
+    <g fill="#6b7076" font-size="10">
+      <text x="150" y="228" text-anchor="middle">0%</text>
+      <text x="272" y="228" text-anchor="middle">20%</text>
+      <text x="394" y="228" text-anchor="middle">40%</text>
+      <text x="516" y="228" text-anchor="middle">60%</text>
+      <text x="638" y="228" text-anchor="middle">80%</text>
+    </g>
+
+    <!-- bars: scale 6.1px per percentage point -->
+    <g>
+      <text x="140" y="40" fill="#eceef0" text-anchor="end">hallucinations</text>
+      <rect x="150" y="27" width="439" height="18" rx="2" fill="#ff7a18"/>
+      <text x="599" y="40" fill="#ff9a4d">&#8722;72%</text>
+    </g>
+    <g>
+      <text x="140" y="82" fill="#eceef0" text-anchor="end">tokens / query</text>
+      <rect x="150" y="69" width="207" height="18" rx="2" fill="#ff7a18" opacity=".85"/>
+      <text x="367" y="82" fill="#ff9a4d">&#8722;34%</text>
+    </g>
+    <g>
+      <text x="140" y="124" fill="#eceef0" text-anchor="end">latency</text>
+      <rect x="150" y="111" width="110" height="18" rx="2" fill="#ff7a18" opacity=".7"/>
+      <text x="270" y="124" fill="#ff9a4d">&#8722;18%</text>
+    </g>
+    <g>
+      <text x="140" y="166" fill="#eceef0" text-anchor="end">answer correctness</text>
+      <rect x="150" y="153" width="177" height="18" rx="2" fill="none" stroke="#ff7a18" stroke-width="1.6"/>
+      <text x="337" y="166" fill="#ff9a4d">+29%</text>
+    </g>
+
+    <g fill="#6b7076" font-size="10">
+      <rect x="150" y="188" width="12" height="9" rx="2" fill="#ff7a18"/>
+      <text x="170" y="196">reduction</text>
+      <rect x="252" y="188" width="12" height="9" rx="2" fill="none" stroke="#ff7a18" stroke-width="1.4"/>
+      <text x="272" y="196">increase</text>
+      <text x="638" y="196" text-anchor="end">52-query suite &#8226; local Gemma 3</text>
+    </g>
+  </g>
+</svg>
+<figcaption>Relative change vs. the prototype pipeline, same corpus, same hardware.</figcaption>
+</figure>
+
+<div class="callout">
+  <div class="label">The result I'm most attached to</div>
+  <p>It doesn't appear in the table: the whole pipeline is <strong>parameterized</strong>. Chunk size, candidate count, retrieved count, re-ranker on or off &#8212; all of it tunes to specific hardware, which is what makes meeting latency demands on an embedded device possible at all.</p>
+</div>
+
+</article>
+
+<footer>
+  <a href="index.html">&#8592; Back to all projects</a>
+  <a href="mailto:alexgp@uw.edu">alexgp@uw.edu</a>
+</footer>
+</div>
+
+</body>
+</html>

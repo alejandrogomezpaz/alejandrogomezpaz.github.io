@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>UFC Explainable Fight Outcome Website &#8212; Alex Gomez-Paz</title>
+<meta name="description" content="Building an explainable UFC fight-outcome model end to end: scraping ufcstats.com with Playwright, designing a leakage-free schema, Glicko-2 ratings, an L1 logistic model, and a self-updating PostgreSQL pipeline.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#0a0b0d;--panel:#111316;--line:#1f2328;--line-hi:#2d333b;
+    --fg:#e8eaed;--fg-dim:#9aa2ad;--fg-faint:#6b7280;--accent:#d64d3f;
+    --pink:#ec4899;--pink-hi:#f472b6;
+    --mono:'JetBrains Mono',ui-monospace,SFMono-Regular,Menlo,monospace;
+    --sans:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html{scroll-behavior:smooth}
+  body{background:var(--bg);color:var(--fg);font-family:var(--sans);font-size:16px;line-height:1.7;-webkit-font-smoothing:antialiased}
+  a{color:inherit}
+  ::selection{background:var(--accent);color:#fff}
+  .wrap{max-width:700px;margin:0 auto;padding:0 24px}
+
+  nav{position:sticky;top:0;z-index:50;background:rgba(10,11,13,.85);backdrop-filter:blur(10px);border-bottom:1px solid var(--line)}
+  nav .wrap{display:flex;align-items:center;justify-content:space-between;height:58px}
+  .brand{font-family:var(--mono);font-size:13px;text-decoration:none}
+  .brand span{color:var(--accent)}
+  .back{font-family:var(--mono);font-size:13px;color:var(--fg-dim);text-decoration:none;transition:color .15s}
+  .back:hover{color:var(--accent)}
+
+  header.post-head{padding:72px 0 40px;border-bottom:1px solid var(--line)}
+  .meta{font-family:var(--mono);font-size:12px;color:var(--fg-faint);letter-spacing:.05em;margin-bottom:20px;display:flex;gap:14px;flex-wrap:wrap}
+  .meta .dot{color:var(--line-hi)}
+  h1{font-size:36px;line-height:1.2;font-weight:600;letter-spacing:-.025em;margin-bottom:18px}
+  @media(max-width:560px){h1{font-size:28px}}
+  .standfirst{font-size:17.5px;color:var(--fg-dim)}
+  .chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:24px}
+  .chip{font-family:var(--mono);font-size:11px;color:var(--fg-faint);border:1px solid var(--line);border-radius:4px;padding:2px 7px}
+  .headlinks{display:flex;gap:12px;margin-top:30px;flex-wrap:wrap}
+  .btn{
+    display:inline-flex;align-items:center;gap:9px;
+    font-family:var(--mono);font-size:14px;font-weight:500;text-decoration:none;
+    border:1px solid var(--line-hi);border-radius:7px;padding:13px 22px;
+    color:var(--fg);transition:all .18s;
+  }
+  .btn svg{width:16px;height:16px;flex:none}
+  .btn{border-color:var(--pink);color:var(--pink)}
+  .btn:hover{border-color:var(--pink-hi);color:var(--pink-hi);background:rgba(236,72,153,.10);transform:translateY(-1px)}
+  .btn.solid{
+    background:var(--pink);border-color:var(--pink);color:#fff;
+    box-shadow:0 2px 16px rgba(236,72,153,.35);
+  }
+  .btn.solid:hover{background:var(--pink-hi);border-color:var(--pink-hi);color:#fff;box-shadow:0 4px 24px rgba(236,72,153,.5)}
+  @media(max-width:560px){.headlinks{flex-direction:column}.btn{justify-content:center}}
+
+  article{padding:48px 0 24px}
+  article h2{
+    font-size:14px;font-family:var(--mono);letter-spacing:.09em;text-transform:uppercase;
+    color:var(--accent);margin:52px 0 18px;font-weight:500;
+  }
+  article h2:first-child{margin-top:0}
+  article p{color:#c9ced6;margin-bottom:18px}
+  article strong{color:var(--fg);font-weight:600}
+  article em{color:var(--fg);font-style:italic}
+  article ol,article ul{color:#c9ced6;margin:0 0 18px 22px}
+  article li{margin-bottom:8px;padding-left:4px}
+  article li::marker{color:var(--fg-faint);font-family:var(--mono);font-size:13px}
+  code{font-family:var(--mono);font-size:13px;background:#16191d;border:1px solid var(--line);border-radius:4px;padding:1px 5px;color:#e0b6a8}
+
+  .callout{
+    border-left:2px solid var(--accent);background:var(--panel);
+    padding:18px 20px;margin:28px 0;border-radius:0 6px 6px 0;
+  }
+  .callout .label{font-family:var(--mono);font-size:11px;letter-spacing:.09em;text-transform:uppercase;color:var(--accent);margin-bottom:8px}
+  .callout p{margin-bottom:0;font-size:15px}
+
+  .diagram{
+    font-family:var(--mono);font-size:12.5px;line-height:1.9;color:var(--fg-dim);
+    background:var(--panel);border:1px solid var(--line);border-radius:6px;
+    padding:20px;margin:26px 0;overflow-x:auto;white-space:pre;
+  }
+  .diagram .hl{color:var(--accent)}
+
+  table{width:100%;border-collapse:collapse;margin:26px 0;font-size:14px}
+  th,td{text-align:left;padding:10px 12px;border-bottom:1px solid var(--line)}
+  th{font-family:var(--mono);font-size:11px;letter-spacing:.07em;text-transform:uppercase;color:var(--fg-faint);font-weight:500}
+  td{color:#c9ced6}
+  td:first-child{color:var(--fg)}
+  .num{font-family:var(--mono);color:var(--accent)}
+
+  footer{padding:48px 0 64px;margin-top:40px;border-top:1px solid var(--line);font-family:var(--mono);font-size:12px;color:var(--fg-faint);display:flex;justify-content:space-between;flex-wrap:wrap;gap:10px}
+  footer a{color:var(--fg-dim);text-decoration:none}
+  footer a:hover{color:var(--accent)}
+</style>
+</head>
+<body>
+
+<nav>
+  <div class="wrap">
+    <a class="brand" href="index.html">alex<span>.</span>gomez-paz</a>
+    <a class="back" href="index.html">&#8592; index</a>
+  </div>
+</nav>
+
+<header class="post-head">
+  <div class="wrap">
+    <div class="meta">
+      <span>2026</span><span class="dot">/</span><span>Project writeup</span><span class="dot">/</span><span>8 min read</span>
+    </div>
+    <h1>UFC Explainable Fight Outcome Website</h1>
+    <p class="standfirst">My experience building a counter-factual classification model with confidence quantification and natural language reasoning.</p>
+    <div class="chips">
+      <span class="chip">Python</span>
+      <span class="chip">Playwright</span>
+      <span class="chip">BeautifulSoup</span>
+      <span class="chip">PostgreSQL</span>
+      <span class="chip">scikit-learn</span>
+      <span class="chip">Glicko-2</span>
+      <span class="chip">Elastic Net</span>
+    </div>
+    <div class="headlinks">
+      <a class="btn solid" href="https://ufc-elo-system-en5j.vercel.app">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M2 12h20M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
+        Try the live site
+      </a>
+      <a class="btn" href="https://github.com/alejandrogomezpaz/UFC_Elo_System">
+        <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 .3a12 12 0 0 0-3.8 23.4c.6.1.8-.3.8-.6v-2.2c-3.3.7-4-1.6-4-1.6-.6-1.4-1.4-1.8-1.4-1.8-1.1-.7.1-.7.1-.7 1.2.1 1.8 1.2 1.8 1.2 1.1 1.8 2.8 1.3 3.5 1 .1-.8.4-1.3.7-1.6-2.7-.3-5.5-1.3-5.5-5.9 0-1.3.5-2.4 1.2-3.2-.1-.3-.5-1.5.1-3.2 0 0 1-.3 3.3 1.2a11.5 11.5 0 0 1 6 0c2.3-1.5 3.3-1.2 3.3-1.2.6 1.7.2 2.9.1 3.2.8.8 1.2 1.9 1.2 3.2 0 4.6-2.8 5.6-5.5 5.9.4.4.8 1.1.8 2.2v3.3c0 .3.2.7.8.6A12 12 0 0 0 12 .3z"/></svg>
+        View source
+      </a>
+    </div>
+  </div>
+</header>
+
+<div class="wrap">
+<article>
+
+<h2>Motivation</h2>
+
+<p>I love to wrestle and this became a new love for combat sports because of their complexity and creativity. In college, I made a friend who loved UFC and MMA. We started watching fights together and ended up betting money on two fights. I lost both :(</p>
+
+<p>This inspired me to:</p>
+
+<ol>
+  <li>Make a model that gives me a prediction on who will win;</li>
+  <li>Teach me about what factors really matter in MMA and how stylistic matchups work;</li>
+  <li>Teach me how to build a real-world model.</li>
+</ol>
+
+<h2>Data Acquisition</h2>
+
+<p>Starting off with the data, I searched for a while: Kaggle, Hugging Face, GitHub repos, to no avail for a large complete database. And so I decided to scrape the data from where the UFC sources their data: <strong>ufcstats.com</strong>.</p>
+
+<p>I started off with BeautifulSoup requests and started trying to configure how to scrape the fights, fighter stats, and fight&#8211;fighter matchups. I settled on a tree architecture visualized below.</p>
+
+<div class="diagram"><span class="hl">Events page</span>                    <span class="hl">Fighters lookup page</span>
+ │                                │
+ └─► event URLs                   └─► fighter URLs
+      │                                │
+      └─► fight URLs                   └─► fighter stat tables
+           │
+           └─► fight stat tables</div>
+
+<p>Unfortunately, in an early debugging-phase run, I requested enough page HTML to be blacklisted from their website &#8212; this is to mean that they asked my browser to solve a JavaScript problem that BeautifulSoup could not solve. After talking to my friend who had faced similar problems at a previous internship, he suggested I try out <strong>Playwright</strong>, a browser manipulation Python library.</p>
+
+<div class="callout">
+  <div class="label">The tradeoff</div>
+  <p>Using Playwright adds much run time due to the built-in buffer times between page creation and usage. In order to combat this I configured a function to run many browsers in parallel: a very simple use case of multithreading.</p>
+</div>
+
+<p>After configuring my BeautifulSoup pipeline with an initial Playwright URL&#8594;HTML parser, and some fail-safes and redundancies to catch any errors, I ran my data scraping pipeline which saved the data to CSV files.</p>
+
+<div class="diagram">URL  ──►  <span class="hl">Playwright (parallel browsers)</span>  ──►  HTML  ──►  <span class="hl">BeautifulSoup</span>  ──►  CSV</div>
+
+<h2>Data Cleaning</h2>
+
+<p>Beyond a simple exploratory data analysis and deduping / data-type casting, the main obstacle in this stage was how to design the data in such a manner that:</p>
+
+<ol>
+  <li>Important data was preserved;</li>
+  <li>Duplicate data is not saved across different tables;</li>
+  <li>Each table served a unique purpose in the creation and querying of a model;</li>
+  <li>The schema was minimalist.</li>
+</ol>
+
+<p>After a lot of thinking I settled on a three-table schema.</p>
+
+<table>
+  <thead>
+    <tr><th>Table</th><th>Purpose</th></tr>
+  </thead>
+  <tbody>
+    <tr><td>fighter</td><td>Features for model querying</td></tr>
+    <tr><td>fight</td><td>Model training, because it was labeled</td></tr>
+    <tr><td>fighter&#8211;fight</td><td>Lookup table</td></tr>
+  </tbody>
+</table>
+
+<p>Upon running a simple logistic regression model on this initial fight table I received a <span class="num">93%</span> test accuracy score. Since this is impossibly good, obviously something was wrong. Apparently a feature included was the record, which was a huge leak in the data. Also, the lifetime aggregate stats for each fighter presented (although less) data leakage.</p>
+
+<div class="callout">
+  <div class="label">The fix</div>
+  <p>In order to fix this I decided on a primary key of <strong>fighter&#8211;date</strong>, composed of data only available before the fighter on said date, and aggregated data this way.</p>
+</div>
+
+<h2>Model</h2>
+
+<p>Given that fighters present different strengths and performance consistency, I wanted to try out a rating system. The Elo system was attractive because of the simplicity, but it didn't provide a consistency factor. I read a research paper on the Glicko system which did account for this, and chose to proceed with the <strong>Glicko-2</strong> system.</p>
+
+<p>Upon constructing a fighter&#8211;date rating table, the test accuracy was really low: only a <span class="num">4%</span> edge over guessing. I believe this is because:</p>
+
+<ol>
+  <li>The UFC constructs fights to be roughly even, because that is what sells;</li>
+  <li>The stylistic matchup;</li>
+  <li>High volatility of MMA.</li>
+</ol>
+
+<p>Instead I came back to the logistic model, but now with time-normalized, dataset-normalized feature differentials between fighters with the included ratings.</p>
+
+<p>But which logistic model? Given the extremely correlated / collinear relationships of the data and the motivation for simple factors, I tried the <strong>elastic net (L1, L2)</strong> logistic model and tuned the &#955;&#8321;&#8211;&#955;&#8322; penalty coefficient ratio. Interestingly, this actually converged to the L1 logistic model when optimizing the training accuracy.</p>
+
+<div class="diagram">min  &#8722; &#931;&#7522; [ y&#7522; log p&#7522; + (1&#8722;y&#7522;) log(1&#8722;p&#7522;) ]  +  &#955;&#8321;&#8741;&#946;&#8741;&#8321;  +  &#955;&#8322;&#8741;&#946;&#8741;&#8322;&#178;
+
+where   p&#7522; = &#963;(&#946;&#7488; x&#7522;),   x&#7522; = <span class="hl">feature differential</span> (fighter A &#8722; fighter B)
+
+tuning the &#955;&#8321;:&#955;&#8322; ratio  ──►  <span class="hl">converged to pure L1</span></div>
+
+<h2>Website Serving</h2>
+
+<p>I saved the trained logistic model to a <code>.joblib</code> file in order to minimize storage, and instantiated a hosted database in PostgreSQL.</p>
+
+<p>Given that new UFC fights happen all the time, I also created a self-updating feature that scrapes, cleans, appends, reruns the Glicko-2 ratings, and updates the database each UFC event.</p>
+
+<div class="diagram"><span class="hl">each UFC event</span>
+    │
+    ├─► scrape
+    ├─► clean
+    ├─► append
+    ├─► rerun Glicko-2 ratings
+    └─► update database  ──►  <span class="hl">site serves fresh predictions</span></div>
+
+<p>Then I Clauded the UI of the new website, since I was not interested in learning how to do it rather than just having the final product.</p>
+
+<div class="callout">
+  <div class="label">See it live</div>
+  <p>The finished site is up at <a href="https://ufc-elo-system-en5j.vercel.app" style="color:var(--accent);border-bottom:1px solid var(--accent);text-decoration:none">ufc-elo-system-en5j.vercel.app</a> &#8212; pick two fighters and it returns a prediction, updated after every UFC event.</p>
+</div>
+
+</article>
+
+<footer>
+  <a href="index.html">&#8592; Back to all projects</a>
+  <a href="mailto:alexgp@uw.edu">alexgp@uw.edu</a>
+</footer>
+</div>
+
+</body>
+</html>

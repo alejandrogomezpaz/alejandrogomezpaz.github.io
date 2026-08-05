@@ -31,13 +31,8 @@
   @media(max-width:560px){main{padding:72px 24px 64px}}
 
   h1{font-size:27px;font-weight:600;letter-spacing:-.02em;margin-bottom:6px}
-<<<<<<< HEAD
-  .sub{font-family:var(--mono);font-size:12.5px;color:var(--pink);letter-spacing:.02em;margin-bottom:26px}
-  .bio{color:var(--fg);font-size:16px}
-=======
   .sub{font-family:var(--mono);font-size:12.5px;color:var(--gold);letter-spacing:.02em;margin-bottom:26px}
-  .bio{color:var(--fg-dim);font-size:16px}
->>>>>>> 0c7c709 (colors be pretty now)
+  .bio{color:var(--fg);font-size:16px}
   .bio strong{color:var(--fg);font-weight:500}
 
   h2{
@@ -60,7 +55,7 @@
   .item.pending .t{color:var(--fg-faint)}
   .item.pending .d{color:var(--fg-faint)}
   a.item.ufc:hover .t{color:var(--pink)}
-  .item.rag .t,.item.pending.rag .t{color:var(--orange)}
+  a.item.rag:hover .t{color:var(--orange)}
 
   .links{display:flex;flex-wrap:wrap;gap:9px;margin-top:18px}
   .lnk{
@@ -91,13 +86,8 @@
     <div class="d">Building a counter-factual classification model with confidence quantification and natural language reasoning.</div>
   </a>
 
-<<<<<<< HEAD
-  <a class="item" href="offline-rag-pipeline.html">
+  <a class="item rag" href="offline-rag-pipeline.html">
     <div class="t">Building an Offline Retrieval-Augmented Generation Pipeline</div>
-=======
-  <div class="item pending rag">
-    <div class="t">Production RAG for Embedded Hardware <span class="soon">Coming soon</span></div>
->>>>>>> 0c7c709 (colors be pretty now)
     <div class="d">Cutting per-query LLM input 34% while raising retrieval accuracy, under real hardware constraints.</div>
   </a>
 

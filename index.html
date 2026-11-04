@@ -132,7 +132,11 @@
   .sub{color:var(--muted);font-size:15px}
 
   .desc{margin-top:8px;font-size:14px;line-height:1.5}
-  .chips{display:flex;flex-wrap:wrap;margin-top:8px}
+  .pts{margin-top:8px;font-size:14px;line-height:1.5}
+  .pts li{position:relative;padding-left:16px}
+  .pts li + li{margin-top:6px}
+  .pts li::before{content:'';position:absolute;left:2px;top:.6em;width:5px;height:5px;border-radius:50%;background:var(--accent-vivid);opacity:.75}
+  .chips{display:flex;flex-wrap:wrap;margin-top:10px}
   .chips li{margin-right:16px}
   .chips a{position:relative;z-index:2;display:inline-flex;align-items:center;gap:4px;font-size:14px;font-weight:500;color:var(--head);transition:color .15s}
   .chips a:hover,.chips a:focus-visible{color:var(--accent)}
@@ -216,7 +220,7 @@
     <!-- ABOUT -->
     <section id="about" class="about" aria-label="About me">
       <div class="sec-head"><h2>About</h2></div>
-      <p>I enjoy working on data-sourced applied math / coding projects. I am currently working at the <strong>UW SEAL Lab</strong> on an embedded-AI project. In my free time I like to play boardgames and read. Feel free to reach out!</p>
+      <p>I love working with data to create practical models and actionable insights.</p>
     </section>
 
     <!-- EXPERIENCE -->
@@ -228,7 +232,13 @@
           <header class="when" aria-label="October 2025 to present">Oct 2025 &#8212; Present</header>
           <div class="body">
             <h3>Founder, Data Scientist &#183; Jiu-Jitsu Analytics</h3>
-            <p class="desc">Built a jiu-jitsu web app that turns footage into user-specific data analytics and advice. Trained a PyTorch position classification model for the core footage-analysis feature (93% accuracy) and built the analytics dashboard behind the product&#8217;s core service. Designed and ran an A/B test on gym-partner referrals vs. cold signups on customer churn to redirect marketing strategy, and instrumented the upload&#8211;analysis&#8211;report funnel in SQL and Tableau, surfacing an 18% drop-off at video processing that drove a key pipeline-latency fix.</p>
+            <p class="desc">Built a jiu-jitsu web app that turns footage into user-specific data analytics and advice.</p>
+            <ul class="pts">
+              <li>Trained a PyTorch position classification model for the core footage-analysis feature, reaching 93% accuracy</li>
+              <li>Built the analytics dashboard that delivers the product&#8217;s core user-facing service</li>
+              <li>Designed and ran an A/B test on gym-partner referrals vs. cold signups on customer churn to redirect marketing strategy</li>
+              <li>Instrumented the upload&#8211;analysis&#8211;report funnel in SQL and built a Tableau dashboard, surfacing an 18% drop-off at video processing that drove a key pipeline-latency fix</li>
+            </ul>
             <ul class="tags" aria-label="Technologies used">
               <li><span>Python</span></li><li><span>PyTorch</span></li><li><span>SQL</span></li><li><span>Tableau</span></li><li><span>A/B Testing</span></li>
             </ul>
@@ -239,7 +249,11 @@
           <header class="when" aria-label="June to September 2026">Jun &#8212; Sep 2026</header>
           <div class="body">
             <h3>Undergraduate Researcher &#183; Sensors Energy and Automation Lab</h3>
-            <p class="desc">Shipped a Retrieval-Augmented Generation (RAG) system for an embedded AI product, reducing hallucinations by 72%. Created an AWS cloud database, including schema design, RESTful API calls, and data pipelines, and analyzed sensor data in Databricks using SQL, visualized in a Tableau dashboard that saved 4 hrs/week.</p>
+            <ul class="pts">
+              <li>Shipped a Retrieval-Augmented Generation (RAG) system for an embedded AI product, reducing hallucinations by 72%</li>
+              <li>Created an AWS cloud database, including schema design, RESTful API calls, and data pipelines</li>
+              <li>Analyzed sensor data in Databricks using SQL and visualized it in a Tableau dashboard, saving 4 hrs/week</li>
+            </ul>
             <ul class="chips" aria-label="Related links">
               <li><a href="offline-rag-pipeline.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>RAG pipeline writeup</a></li>
             </ul>
@@ -253,7 +267,10 @@
           <header class="when" aria-label="Expected June 2028">Expected Jun 2028</header>
           <div class="body">
             <h3>B.S. Applied Mathematics: Data Science &#183; University of Washington</h3>
-            <p class="desc">GPA: 3.8. DubHacks &#8217;26 Winner (800 participants, $2K prize).</p>
+            <ul class="pts">
+              <li>GPA: 3.8</li>
+              <li>DubHacks &#8217;26 Winner (800 participants, $2K prize)</li>
+            </ul>
           </div>
         </div></li>
 
@@ -269,7 +286,11 @@
         <li><div class="card proj">
           <div class="body">
             <h3><a class="tl" href="https://ufc-elo-system-en5j.vercel.app" target="_blank" rel="noopener" aria-label="UFC Prediction Model (opens in a new tab)">UFC Prediction Model<svg class="arw" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 7h10v10"/><path d="M7 17 17 7"/></svg></a></h3>
-            <p class="desc">Scraped and cleaned 3M+ datapoints to train an uncertainty-quantified, explainable classification model, automatically retrained by a cron job after every UFC event. Deployed on a public website via a cloud database, reaching 200+ monthly visits.</p>
+            <ul class="pts">
+              <li>Scraped and cleaned 3M+ datapoints to train an uncertainty-quantified, explainable classification model</li>
+              <li>Scheduled a cron job to automatically retrain the model after every UFC event</li>
+              <li>Deployed the model on a public website via a cloud database, reaching 200+ monthly visits</li>
+            </ul>
             <ul class="chips" aria-label="Related links">
               <li><a href="ufc-fight-outcomes.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>Writeup</a></li>
               <li><a href="https://github.com/alejandrogomezpaz/UFC_Elo_System" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>Source</a></li>
@@ -291,7 +312,10 @@
         <li><div class="card proj">
           <div class="body">
             <h3>Quantitative Skill Data Analysis</h3>
-            <p class="desc">Analyzed 700K+ data job postings to measure skill frequency and median pay across 150+ skills, then applied multi-variable Pareto optimization to determine the optimal skills.</p>
+            <ul class="pts">
+              <li>Analyzed 700K+ data job postings to measure skill frequency and median pay across 150+ skills</li>
+              <li>Applied multi-variable Pareto optimization to determine optimal skills</li>
+            </ul>
             <ul class="tags" aria-label="Technologies used">
               <li><span>Python</span></li><li><span>Pandas</span></li><li><span>Pareto Optimization</span></li>
             </ul>
@@ -308,7 +332,11 @@
         <li><div class="card proj">
           <div class="body">
             <h3>Retail Data Analysis</h3>
-            <p class="desc">Cleaned, explored, and analyzed 500K+ datapoints with PostgreSQL and Pandas to find year-over-year growth, seasonality, and cohort trends, and evaluated a SARIMA forecasting model.</p>
+            <ul class="pts">
+              <li>Cleaned and explored 500K+ datapoints using PostgreSQL and Pandas</li>
+              <li>Measured year-over-year growth, seasonality, and cohort trends</li>
+              <li>Evaluated a SARIMA forecasting model</li>
+            </ul>
             <ul class="tags" aria-label="Technologies used">
               <li><span>PostgreSQL</span></li><li><span>Python</span></li><li><span>Pandas</span></li><li><span>SARIMA</span></li>
             </ul>

@@ -4,111 +4,404 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Alex Gomez-Paz</title>
-<meta name="description" content="Alex Gomez-Paz — Applied Mathematics: Data Science at the University of Washington. Machine learning, writing, and contact.">
+<meta name="description" content="Alex Gomez-Paz — Applied Mathematics: Data Science at the University of Washington. Experience, projects, and writing.">
+<meta name="theme-color" content="#fbe9ed">
+<meta property="og:type" content="website">
+<meta property="og:title" content="Alex Gomez-Paz">
+<meta property="og:description" content="Applied Mathematics: Data Science at the University of Washington. Experience, projects, and writing.">
+<meta property="og:url" content="https://alejandrogomezpaz.github.io/">
+<meta name="twitter:card" content="summary">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%23db2777'/%3E%3Ctext x='16' y='21.5' font-family='Arial,Helvetica,sans-serif' font-size='14' font-weight='700' fill='white' text-anchor='middle'%3EAG%3C/text%3E%3C/svg%3E">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
   :root{
-    --bg:#0a0b0d;--line:#1f2328;--line-hi:#2d333b;
-    --fg:#e8eaed;--fg-dim:#9aa2ad;--fg-faint:#6b7280;
-    --gold:#f0b429;--gold-hi:#ffc84d;
-    --pink:#ec4899;--pink-hi:#f472b6;
-    --orange:#f97316;--orange-hi:#fb923c;
-    --mono:'JetBrains Mono',ui-monospace,SFMono-Regular,Menlo,monospace;
-    --sans:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
+    --bg-hi:#fdf3f5;--bg-mid:#f9e1e6;--bg-lo:#f4c9d2;
+    --head:#3b1622;--text:#6b3f4d;--muted:#7d4a5a;
+    --accent:#a3144f;--accent-vivid:#db2777;
+    --line:#cf9cab;--tag-bg:rgba(190,24,93,.10);
+    --card-hover:rgba(255,255,255,.45);
+    --sans:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;
   }
   *{box-sizing:border-box;margin:0;padding:0}
+  html{scroll-behavior:smooth;-webkit-text-size-adjust:100%}
+  @media (prefers-reduced-motion:reduce){html{scroll-behavior:auto}*{transition:none!important}}
   body{
-    background:var(--bg);color:var(--fg);
-    font-family:var(--sans);font-size:16px;line-height:1.7;
+    background:var(--bg-mid);color:var(--text);
+    font-family:var(--sans);font-size:16px;line-height:1.625;
     -webkit-font-smoothing:antialiased;
   }
+  body::before{
+    content:'';position:fixed;inset:0;z-index:-2;pointer-events:none;
+    background:
+      radial-gradient(ellipse 70% 55% at 15% 10%,var(--bg-hi) 0%,transparent 60%),
+      radial-gradient(ellipse 65% 60% at 85% 90%,var(--bg-lo) 0%,transparent 65%),
+      linear-gradient(160deg,var(--bg-hi) 0%,var(--bg-mid) 50%,#f7d4db 100%);
+  }
   a{color:inherit;text-decoration:none}
-  ::selection{background:var(--gold);color:#0a0b0d}
+  ul,ol{list-style:none}
+  ::selection{background:rgba(219,39,119,.22);color:var(--head)}
+  svg{display:block}
 
-  main{max-width:560px;margin:0 auto;padding:120px 26px 90px}
-  @media(max-width:560px){main{padding:72px 24px 64px}}
+  .skip{position:absolute;left:-9999px;top:16px;z-index:100;padding:10px 16px;border-radius:6px;background:var(--head);color:#fff;font-size:14px;font-weight:600}
+  .skip:focus{left:16px}
 
-  h1{font-size:27px;font-weight:600;letter-spacing:-.02em;margin-bottom:6px}
-  .sub{font-family:var(--mono);font-size:12.5px;color:var(--gold);letter-spacing:.02em;margin-bottom:26px}
-  .bio{color:var(--fg);font-size:16px}
-  .bio strong{color:var(--fg);font-weight:500}
+  /* cursor glow: light pink base, saturated pink spotlight */
+  .spotlight{position:fixed;inset:0;z-index:-1;pointer-events:none;transition:background .1s;display:none}
+  @media (hover:hover) and (min-width:1024px){.spotlight{display:block}}
 
-  h2{
-    font-family:var(--mono);font-size:11.5px;letter-spacing:.12em;
-    text-transform:uppercase;color:var(--fg-faint);font-weight:500;
-    margin:64px 0 4px;
+  .wrap{position:relative;max-width:1280px;min-height:100vh;margin:0 auto;padding:48px 24px}
+  @media(min-width:768px){.wrap{padding:80px 48px}}
+  @media(min-width:1024px){.wrap{display:flex;justify-content:space-between;gap:16px;padding:0 96px}}
+
+  /* ---------- left column ---------- */
+  .side h1{font-size:36px;line-height:40px;font-weight:700;letter-spacing:-.025em;color:var(--head)}
+  @media(min-width:640px){.side h1{font-size:48px;line-height:1}}
+  .side .role{margin-top:12px;font-size:18px;line-height:28px;font-weight:500;letter-spacing:-.025em;color:var(--head)}
+  @media(min-width:640px){.side .role{font-size:20px}}
+  .side .tagline{margin-top:16px;max-width:320px;line-height:1.5}
+
+  .nav{display:none}
+  .nav ul{margin-top:64px;width:max-content}
+  .nav a{display:flex;align-items:center;padding:12px 0}
+  .nav .ind{width:32px;height:1px;margin-right:16px;background:var(--line);transition:all .15s}
+  .nav .lbl{font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:var(--muted);transition:color .15s}
+  .nav a:hover .ind,.nav a:focus-visible .ind,.nav a.active .ind{width:64px;background:var(--head)}
+  .nav a:hover .lbl,.nav a:focus-visible .lbl,.nav a.active .lbl{color:var(--head)}
+
+  .social{display:flex;flex-wrap:wrap;align-items:center;gap:6px 20px;margin-top:32px;margin-left:2px}
+  .social a{display:inline-flex;align-items:center;gap:6px;font-size:14px;font-weight:500;color:var(--text);transition:color .15s}
+  .social a:hover,.social a:focus-visible{color:var(--accent)}
+  .social svg{width:16px;height:16px}
+
+  @media(min-width:1024px){
+    .side{position:sticky;top:0;flex:0 0 48%;max-height:100vh;display:flex;flex-direction:column;justify-content:space-between;padding:96px 0}
+    .nav{display:block}
   }
 
-  .item{display:block;padding:16px 0;border-bottom:1px solid var(--line)}
-  .item:first-of-type{border-top:1px solid var(--line)}
-  a.item{transition:padding-left .18s}
-  a.item:hover{padding-left:7px}
-  .t{font-size:16px;font-weight:500;display:flex;align-items:baseline;gap:9px;flex-wrap:wrap}
-  a.item:hover .t{color:var(--gold)}
-  .d{font-size:14px;color:var(--fg-dim);margin-top:3px}
-  .soon{
-    font-family:var(--mono);font-size:10px;letter-spacing:.08em;text-transform:uppercase;
-    color:var(--fg-faint);border:1px solid var(--line-hi);border-radius:3px;padding:1px 6px;
-  }
-  .item.pending .t{color:var(--fg-faint)}
-  .item.pending .d{color:var(--fg-faint)}
-  a.item.ufc .t{color:var(--pink)}
-  a.item.ufc:hover .t{color:var(--pink-hi)}
-  a.item.rag .t{color:var(--orange)}
-  a.item.rag:hover .t{color:var(--orange-hi)}
+  /* ---------- right column ---------- */
+  main{padding-top:96px}
+  @media(min-width:1024px){main{flex:0 0 50%;padding:96px 0}}
+  section{margin-bottom:64px;scroll-margin-top:64px}
+  @media(min-width:768px){section{margin-bottom:96px}}
+  @media(min-width:1024px){section{margin-bottom:144px;scroll-margin-top:96px}}
 
-  .links{display:flex;flex-wrap:wrap;gap:9px;margin-top:18px}
-  .lnk{
-    font-family:var(--mono);font-size:13px;
-    border:1px solid var(--gold);color:var(--gold);
-    border-radius:6px;padding:9px 16px;transition:all .18s;
+  .sec-head{
+    position:sticky;top:0;z-index:20;margin:0 -24px 16px;padding:20px 24px;
+    background:rgba(250,228,233,.78);-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px);
   }
-  .lnk:hover{background:rgba(240,180,41,.10);border-color:var(--gold-hi);color:var(--gold-hi)}
-  .lnk.solid{background:var(--gold);border-color:var(--gold);color:#0a0b0d;box-shadow:0 2px 14px rgba(240,180,41,.3)}
-  .lnk.solid:hover{background:var(--gold-hi);border-color:var(--gold-hi);color:#0a0b0d}
+  @media(min-width:768px){.sec-head{margin:0 -48px 16px;padding:20px 48px}}
+  .sec-head h2{font-size:14px;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:var(--head)}
+  @media(min-width:1024px){
+    .sec-head{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
+  }
 
-  footer{margin-top:72px;font-family:var(--mono);font-size:11.5px;color:var(--fg-faint)}
+  .about p{margin-bottom:16px}
+  .about strong{font-weight:500;color:var(--head)}
+
+  /* cards (experience / projects / blog) */
+  .list > li{margin-bottom:48px}
+  .card{position:relative;isolation:isolate;display:grid;gap:8px;padding-bottom:4px;transition:opacity .15s}
+  @media(min-width:640px){.card{grid-template-columns:repeat(8,minmax(0,1fr));gap:32px}}
+  @media(min-width:768px){.card{gap:16px}}
+  .card::before{
+    content:'';position:absolute;inset:-16px -16px;z-index:-1;border-radius:6px;display:none;
+    transition:background .15s,box-shadow .15s;
+  }
+  @media(min-width:1024px){
+    .card::before{display:block;inset:-16px -24px}
+    .card:hover::before{background:var(--card-hover);box-shadow:inset 0 1px 0 0 rgba(255,255,255,.75),0 12px 32px -14px rgba(163,20,79,.28)}
+  }
+  @media (hover:hover) and (min-width:1024px){
+    .list:hover > li > .card:not(:hover){opacity:.5}
+  }
+
+  .when{margin:4px 0 0;font-size:12px;line-height:16px;font-weight:600;text-transform:uppercase;letter-spacing:.025em;color:var(--muted)}
+  @media(min-width:640px){.when{grid-column:span 2/span 2}}
+  .body{min-width:0}
+  @media(min-width:640px){.body{grid-column:span 6/span 6}}
+
+  .card h3{font-size:16px;font-weight:500;line-height:1.375;color:var(--head)}
+  .tl{display:inline-flex;align-items:baseline;font-weight:500;line-height:1.25;color:var(--head);transition:color .15s}
+  .tl:hover,.tl:focus-visible,.card:hover .tl{color:var(--accent)}
+  .tl::after{content:'';position:absolute;inset:-10px -16px;z-index:1;border-radius:6px}
+  @media(min-width:1024px){.tl::after{inset:-16px -24px}}
+  .tl .arw{width:16px;height:16px;flex-shrink:0;margin-left:4px;transform:translateY(2px);transition:transform .15s}
+  .card:hover .tl .arw,.tl:focus-visible .arw{transform:translate(4px,-2px)}
+  .sub{color:var(--muted);font-size:15px}
+
+  .desc{margin-top:8px;font-size:14px;line-height:1.5}
+  .chips{display:flex;flex-wrap:wrap;margin-top:8px}
+  .chips li{margin-right:16px}
+  .chips a{position:relative;z-index:2;display:inline-flex;align-items:center;gap:4px;font-size:14px;font-weight:500;color:var(--head);transition:color .15s}
+  .chips a:hover,.chips a:focus-visible{color:var(--accent)}
+  .chips svg{width:12px;height:12px}
+  .tags{display:flex;flex-wrap:wrap;margin-top:8px}
+  .tags li{margin:8px 6px 0 0}
+  .tags span{display:flex;align-items:center;border-radius:9999px;background:var(--tag-bg);padding:4px 12px;font-size:12px;line-height:20px;font-weight:500;color:var(--accent)}
+
+  .full{display:inline-flex;align-items:baseline;margin-top:48px;font-weight:500;line-height:1.25;color:var(--head)}
+  .full .u{border-bottom:1px solid transparent;padding-bottom:1px;transition:border-color .15s,color .15s}
+  .full:hover .u,.full:focus-visible .u{border-color:var(--accent);color:var(--accent)}
+  .full .arw{width:16px;height:16px;margin-left:4px;transform:translateY(2px);transition:transform .15s}
+  .full:hover .arw,.full:focus-visible .arw{transform:translate(8px,2px)}
+
+  /* project + blog thumbnails */
+  .thumb{
+    width:100%;max-width:200px;border-radius:4px;border:2px solid rgba(59,22,34,.10);
+    background:linear-gradient(150deg,rgba(255,255,255,.75),rgba(255,255,255,.35));
+    transition:border-color .15s;
+  }
+  .card:hover .thumb{border-color:rgba(59,22,34,.28)}
+  .proj .body{order:1}
+  .proj .thumb{order:2}
+  @media(min-width:640px){
+    .proj .body{order:2}
+    .proj .thumb{order:1;grid-column:span 2/span 2;transform:translateY(4px)}
+  }
+
+  .blog > li{margin-bottom:16px}
+  .blog .card{grid-template-columns:repeat(8,minmax(0,1fr));align-items:center;gap:16px}
+  @media(min-width:640px){.blog .card{gap:32px}}
+  @media(min-width:768px){.blog .card{gap:16px}}
+  .blog .thumb{grid-column:span 2/span 2}
+  .blog .body{grid-column:span 6/span 6}
+  .blog .year{margin-top:-4px;font-size:14px;line-height:24px;font-weight:600;color:var(--muted)}
+  .blog h3{margin-top:-4px}
+  .blog .pending{opacity:.7}
+  .blog .pending h3{color:var(--text)}
+
+  footer{max-width:448px;padding-bottom:64px;font-size:14px;line-height:1.5;color:var(--muted)}
+  @media(min-width:640px){footer{padding-bottom:0}}
+  footer a{font-weight:500;color:var(--text);transition:color .15s}
+  footer a:hover,footer a:focus-visible{color:var(--accent)}
+
+  a:focus-visible{outline:2px solid var(--accent-vivid);outline-offset:3px;border-radius:2px}
 </style>
 </head>
 <body>
 
-<main>
+<a class="skip" href="#content">Skip to Content</a>
+<div class="spotlight" id="spotlight" aria-hidden="true"></div>
 
-  <h1>Alex Gomez-Paz</h1>
-  <div class="sub">Applied Mathematics: Data Science &#183; UW Seattle &#183; &#700;28</div>
+<div class="wrap">
 
-  <p class="bio">I enjoy working on data-sourced applied math / coding projects. I am currently working at the <strong>UW SEAL Lab</strong> on an embedded-AI project. In my free time I like to play boardgames and read. Feel free to reach out!</p>
+  <header class="side">
+    <div>
+      <h1><a href="index.html">Alex Gomez-Paz</a></h1>
+      <h2 class="role">Applied Mathematics: Data Science</h2>
+      <p class="tagline">Data science student at the University of Washington, class of 2028.</p>
 
-  <h2>Writing</h2>
+      <nav class="nav" aria-label="In-page jump links">
+        <ul>
+          <li><a href="#about" data-sec="about"><span class="ind"></span><span class="lbl">About</span></a></li>
+          <li><a href="#experience" data-sec="experience"><span class="ind"></span><span class="lbl">Experience</span></a></li>
+          <li><a href="#projects" data-sec="projects"><span class="ind"></span><span class="lbl">Projects</span></a></li>
+          <li><a href="#blog" data-sec="blog"><span class="ind"></span><span class="lbl">Blog</span></a></li>
+        </ul>
+      </nav>
+    </div>
 
-  <a class="item ufc" href="ufc-fight-outcomes.html">
-    <div class="t">UFC Explainable Fight Outcome Website</div>
-    <div class="d">Building a counter-factual classification model with confidence quantification and natural language reasoning.</div>
-  </a>
+    <ul class="social" aria-label="Contact and profiles">
+      <li><a href="https://github.com/alejandrogomezpaz" target="_blank" rel="noopener">GitHub<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 7h10v10"/><path d="M7 17 17 7"/></svg></a></li>
+      <li><a href="https://www.linkedin.com/in/alejandro-gomez-paz/" target="_blank" rel="noopener">LinkedIn<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 7h10v10"/><path d="M7 17 17 7"/></svg></a></li>
+      <li><a href="mailto:alexgp@uw.edu"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m22 7-8.991 5.727a2 2 0 0 1-2.009 0L2 7"/><rect x="2" y="4" width="20" height="16" rx="2"/></svg>Email</a></li>
+      <li><a href="resume.pdf" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 22a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h8a2.4 2.4 0 0 1 1.704.706l3.588 3.588A2.4 2.4 0 0 1 20 8v12a2 2 0 0 1-2 2z"/><path d="M14 2v5a1 1 0 0 0 1 1h5"/><path d="M10 9H8"/><path d="M16 13H8"/><path d="M16 17H8"/></svg>R&#233;sum&#233;</a></li>
+    </ul>
+  </header>
 
-  <a class="item rag" href="offline-rag-pipeline.html">
-    <div class="t">Building an Offline Retrieval-Augmented Generation Pipeline</div>
-    <div class="d">Building an optimal Retrieval Augmented Generation system.</div>
-  </a>
+  <main id="content">
 
-  <div class="item pending">
-    <div class="t">Catan Data Science Project <span class="soon">Coming soon</span></div>
-  </div>
+    <!-- ABOUT -->
+    <section id="about" class="about" aria-label="About me">
+      <div class="sec-head"><h2>About</h2></div>
+      <p>I enjoy working on data-sourced applied math / coding projects. I am currently working at the <strong>UW SEAL Lab</strong> on an embedded-AI project. In my free time I like to play boardgames and read. Feel free to reach out!</p>
+    </section>
 
-  <h2>Contact</h2>
+    <!-- EXPERIENCE -->
+    <section id="experience" aria-label="Work experience">
+      <div class="sec-head"><h2>Experience</h2></div>
+      <ol class="list">
 
-  <div class="links">
-    <a class="lnk solid" href="mailto:alexgp@uw.edu">alexgp@uw.edu</a>
-    <a class="lnk" href="resume.pdf" target="_blank" rel="noopener">R&#233;sum&#233;</a>
-    <a class="lnk" href="https://github.com/alejandrogomezpaz">GitHub</a>
-    <a class="lnk" href="https://www.linkedin.com/in/alejandro-gomez-paz/">LinkedIn</a>
-  </div>
+        <li><div class="card">
+          <header class="when" aria-label="October 2025 to present">Oct 2025 &#8212; Present</header>
+          <div class="body">
+            <h3>Founder, Data Scientist &#183; Jiu-Jitsu Analytics</h3>
+            <p class="desc">Built a jiu-jitsu web app that turns footage into user-specific data analytics and advice. Trained a PyTorch position classification model for the core footage-analysis feature (93% accuracy) and built the analytics dashboard behind the product&#8217;s core service. Designed and ran an A/B test on gym-partner referrals vs. cold signups on customer churn to redirect marketing strategy, and instrumented the upload&#8211;analysis&#8211;report funnel in SQL and Tableau, surfacing an 18% drop-off at video processing that drove a key pipeline-latency fix.</p>
+            <ul class="tags" aria-label="Technologies used">
+              <li><span>Python</span></li><li><span>PyTorch</span></li><li><span>SQL</span></li><li><span>Tableau</span></li><li><span>A/B Testing</span></li>
+            </ul>
+          </div>
+        </div></li>
 
-  <footer>&#169; 2026 Alex Gomez-Paz</footer>
+        <li><div class="card">
+          <header class="when" aria-label="June to September 2026">Jun &#8212; Sep 2026</header>
+          <div class="body">
+            <h3>Undergraduate Researcher &#183; Sensors Energy and Automation Lab</h3>
+            <p class="desc">Shipped a Retrieval-Augmented Generation (RAG) system for an embedded AI product, reducing hallucinations by 72%. Created an AWS cloud database, including schema design, RESTful API calls, and data pipelines, and analyzed sensor data in Databricks using SQL, visualized in a Tableau dashboard that saved 4 hrs/week.</p>
+            <ul class="chips" aria-label="Related links">
+              <li><a href="offline-rag-pipeline.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>RAG pipeline writeup</a></li>
+            </ul>
+            <ul class="tags" aria-label="Technologies used">
+              <li><span>Python</span></li><li><span>LangChain</span></li><li><span>AWS</span></li><li><span>Databricks</span></li><li><span>SQL</span></li><li><span>Tableau</span></li>
+            </ul>
+          </div>
+        </div></li>
 
-</main>
+        <li><div class="card">
+          <header class="when" aria-label="Expected June 2028">Expected Jun 2028</header>
+          <div class="body">
+            <h3>B.S. Applied Mathematics: Data Science &#183; University of Washington</h3>
+            <p class="desc">GPA: 3.8. DubHacks &#8217;26 Winner (800 participants, $2K prize).</p>
+          </div>
+        </div></li>
 
+      </ol>
+      <a class="full" href="resume.pdf" target="_blank" rel="noopener" aria-label="View full r&#233;sum&#233; (opens in a new tab)"><span class="u">View Full R&#233;sum&#233;</span><svg class="arw" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg></a>
+    </section>
+
+    <!-- PROJECTS -->
+    <section id="projects" aria-label="Selected projects">
+      <div class="sec-head"><h2>Projects</h2></div>
+      <ol class="list">
+
+        <li><div class="card proj">
+          <div class="body">
+            <h3><a class="tl" href="https://ufc-elo-system-en5j.vercel.app" target="_blank" rel="noopener" aria-label="UFC Prediction Model (opens in a new tab)">UFC Prediction Model<svg class="arw" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 7h10v10"/><path d="M7 17 17 7"/></svg></a></h3>
+            <p class="desc">Scraped and cleaned 3M+ datapoints to train an uncertainty-quantified, explainable classification model, automatically retrained by a cron job after every UFC event. Deployed on a public website via a cloud database, reaching 200+ monthly visits.</p>
+            <ul class="chips" aria-label="Related links">
+              <li><a href="ufc-fight-outcomes.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>Writeup</a></li>
+              <li><a href="https://github.com/alejandrogomezpaz/UFC_Elo_System" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>Source</a></li>
+            </ul>
+            <ul class="tags" aria-label="Technologies used">
+              <li><span>Python</span></li><li><span>Playwright</span></li><li><span>Pandas</span></li><li><span>PostgreSQL</span></li><li><span>Glicko-2</span></li>
+            </ul>
+          </div>
+          <svg class="thumb" viewBox="0 0 160 90" role="img" aria-label="Two fighters' rating lines crossing over time">
+            <g fill="none" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+              <polyline points="14,64 34,56 54,60 74,45 94,48 114,36 134,40 148,28" stroke="#3b1622" stroke-opacity=".45"/>
+              <polyline points="14,38 34,46 54,37 74,51 94,42 114,54 134,47 148,60" stroke="#db2777"/>
+            </g>
+            <circle cx="148" cy="28" r="3.5" fill="#3b1622" fill-opacity=".55"/>
+            <circle cx="148" cy="60" r="3.5" fill="#db2777"/>
+          </svg>
+        </div></li>
+
+        <li><div class="card proj">
+          <div class="body">
+            <h3>Quantitative Skill Data Analysis</h3>
+            <p class="desc">Analyzed 700K+ data job postings to measure skill frequency and median pay across 150+ skills, then applied multi-variable Pareto optimization to determine the optimal skills.</p>
+            <ul class="tags" aria-label="Technologies used">
+              <li><span>Python</span></li><li><span>Pandas</span></li><li><span>Pareto Optimization</span></li>
+            </ul>
+          </div>
+          <svg class="thumb" viewBox="0 0 160 90" role="img" aria-label="Scatter plot with a Pareto frontier">
+            <g fill="#3b1622" fill-opacity=".3">
+              <circle cx="46" cy="62" r="3"/><circle cx="62" cy="70" r="3"/><circle cx="70" cy="52" r="3"/><circle cx="90" cy="60" r="3"/><circle cx="98" cy="44" r="3"/><circle cx="116" cy="54" r="3"/><circle cx="122" cy="40" r="3"/><circle cx="140" cy="62" r="3"/><circle cx="84" cy="74" r="3"/>
+            </g>
+            <polyline points="18,70 34,52 56,38 82,28 110,22 144,18" fill="none" stroke="#db2777" stroke-width="2" stroke-dasharray="4 3" stroke-linecap="round"/>
+            <g fill="#db2777"><circle cx="18" cy="70" r="3.5"/><circle cx="34" cy="52" r="3.5"/><circle cx="56" cy="38" r="3.5"/><circle cx="82" cy="28" r="3.5"/><circle cx="110" cy="22" r="3.5"/><circle cx="144" cy="18" r="3.5"/></g>
+          </svg>
+        </div></li>
+
+        <li><div class="card proj">
+          <div class="body">
+            <h3>Retail Data Analysis</h3>
+            <p class="desc">Cleaned, explored, and analyzed 500K+ datapoints with PostgreSQL and Pandas to find year-over-year growth, seasonality, and cohort trends, and evaluated a SARIMA forecasting model.</p>
+            <ul class="tags" aria-label="Technologies used">
+              <li><span>PostgreSQL</span></li><li><span>Python</span></li><li><span>Pandas</span></li><li><span>SARIMA</span></li>
+            </ul>
+          </div>
+          <svg class="thumb" viewBox="0 0 160 90" role="img" aria-label="Seasonal sales curve with a dashed forecast">
+            <path d="M12 66 C22 46 30 46 38 62 S54 72 62 52 S80 38 88 52 S104 58 112 40" fill="none" stroke="#3b1622" stroke-opacity=".5" stroke-width="2.5" stroke-linecap="round"/>
+            <path d="M112 40 C120 24 128 26 136 38 S146 40 150 28" fill="none" stroke="#db2777" stroke-width="2.5" stroke-dasharray="5 4" stroke-linecap="round"/>
+            <line x1="112" y1="14" x2="112" y2="78" stroke="#3b1622" stroke-opacity=".15" stroke-width="1"/>
+          </svg>
+        </div></li>
+
+      </ol>
+      <a class="full" href="https://github.com/alejandrogomezpaz" target="_blank" rel="noopener" aria-label="View all projects on GitHub (opens in a new tab)"><span class="u">View All Projects on GitHub</span><svg class="arw" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg></a>
+    </section>
+
+    <!-- BLOG -->
+    <section id="blog" aria-label="Blog posts">
+      <div class="sec-head"><h2>Blog</h2></div>
+      <ol class="list blog">
+
+        <li><div class="card">
+          <svg class="thumb" viewBox="0 0 160 90" role="img" aria-label="Win-probability bars">
+            <rect x="48" y="26" width="26" height="50" rx="3" fill="#db2777"/>
+            <rect x="86" y="46" width="26" height="30" rx="3" fill="#3b1622" fill-opacity=".4"/>
+            <line x1="36" y1="76" x2="124" y2="76" stroke="#3b1622" stroke-opacity=".25" stroke-width="1.5"/>
+          </svg>
+          <div class="body">
+            <p class="year">2026</p>
+            <h3><a class="tl" href="ufc-fight-outcomes.html">UFC Explainable Fight Outcome Website</a></h3>
+          </div>
+        </div></li>
+
+        <li><div class="card">
+          <svg class="thumb" viewBox="0 0 160 90" role="img" aria-label="A document split into chunks">
+            <rect x="36" y="18" width="34" height="54" rx="3" fill="none" stroke="#3b1622" stroke-opacity=".45" stroke-width="2"/>
+            <g stroke="#3b1622" stroke-opacity=".3" stroke-width="2" stroke-linecap="round"><line x1="43" y1="30" x2="63" y2="30"/><line x1="43" y1="38" x2="63" y2="38"/><line x1="43" y1="46" x2="58" y2="46"/><line x1="43" y1="54" x2="63" y2="54"/></g>
+            <path d="M78 45 H92 M87 40 L92 45 L87 50" fill="none" stroke="#db2777" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            <g fill="#db2777"><rect x="100" y="20" width="26" height="12" rx="3"/><rect x="100" y="39" width="26" height="12" rx="3" fill-opacity=".7"/><rect x="100" y="58" width="26" height="12" rx="3" fill-opacity=".45"/></g>
+          </svg>
+          <div class="body">
+            <p class="year">2026</p>
+            <h3><a class="tl" href="offline-rag-pipeline.html">Building an Offline Retrieval-Augmented Generation Pipeline</a></h3>
+          </div>
+        </div></li>
+
+        <li><div class="card pending">
+          <svg class="thumb" viewBox="0 0 160 90" role="img" aria-label="Three hexagon tiles">
+            <g stroke="#3b1622" stroke-opacity=".35" stroke-width="2" stroke-linejoin="round">
+              <polygon points="80,17 92.1,24 92.1,38 80,45 67.9,38 67.9,24" fill="#db2777" fill-opacity=".55"/>
+              <polygon points="67.9,38 80,45 80,59 67.9,66 55.8,59 55.8,45" fill="#3b1622" fill-opacity=".15"/>
+              <polygon points="92.1,38 104.2,45 104.2,59 92.1,66 80,59 80,45" fill="#db2777" fill-opacity=".25"/>
+            </g>
+          </svg>
+          <div class="body">
+            <p class="year">Coming soon</p>
+            <h3>Catan Data Science Project</h3>
+          </div>
+        </div></li>
+
+      </ol>
+    </section>
+
+    <footer>
+      <p>Layout inspired by <a href="https://brittanychiang.com" target="_blank" rel="noopener">Brittany Chiang</a>. Built with plain HTML &amp; CSS and hosted on GitHub Pages. Text set in Inter. &#169; 2026 Alex Gomez-Paz.</p>
+    </footer>
+
+  </main>
+</div>
+
+<script>
+(function(){
+  // saturated-pink glow that follows the cursor (desktop only)
+  var sp=document.getElementById('spotlight');
+  if(sp && window.matchMedia('(hover:hover) and (min-width:1024px)').matches){
+    document.addEventListener('pointermove',function(e){
+      sp.style.background='radial-gradient(600px at '+e.clientX+'px '+e.clientY+'px, rgba(236,72,153,.17), transparent 80%)';
+    },{passive:true});
+  }
+  // highlight the nav item for the section in view
+  var links=[].slice.call(document.querySelectorAll('.nav a'));
+  var secs=links.map(function(a){return document.getElementById(a.getAttribute('data-sec'))});
+  var ticking=false;
+  function spy(){
+    var cur=secs[0];
+    for(var i=0;i<secs.length;i++){ if(secs[i].getBoundingClientRect().top<=window.innerHeight*0.35) cur=secs[i]; }
+    if(window.innerHeight+window.scrollY>=document.documentElement.scrollHeight-2) cur=secs[secs.length-1];
+    links.forEach(function(a){a.classList.toggle('active',a.getAttribute('data-sec')===cur.id)});
+    ticking=false;
+  }
+  window.addEventListener('scroll',function(){ if(!ticking){ticking=true;requestAnimationFrame(spy);} },{passive:true});
+  window.addEventListener('resize',spy);
+  spy();
+})();
+</script>
 </body>
 </html>
